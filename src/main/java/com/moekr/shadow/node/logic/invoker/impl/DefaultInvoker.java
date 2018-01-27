@@ -7,9 +7,8 @@ import com.moekr.shadow.node.logic.vo.Statistic;
 import com.moekr.shadow.node.logic.vo.Status;
 import com.moekr.shadow.node.util.ServiceException;
 import com.moekr.shadow.node.util.ToolKit;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,9 +16,8 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@CommonsLog
 public class DefaultInvoker extends InvokerAdapter {
-	private static final Log LOG = LogFactory.getLog(DefaultInvoker.class);
-
 	private InvokerConfiguration invokerConfiguration;
 	private Configuration configuration;
 	private Process shadowProcess;
@@ -29,13 +27,13 @@ public class DefaultInvoker extends InvokerAdapter {
 		try {
 			output = exec("iptables -V");
 		} catch (Throwable e) {
-			LOG.fatal("Fail to detect iptables, please check iptables support", e);
+			log.fatal("Fail to detect iptables, please check iptables support", e);
 			throw new UnsupportedOperationException("Fail to detect iptables, please check iptables support", e);
 		}
 		if (!output.isEmpty() && output.get(0).contains("iptables")) {
-			LOG.info("Using " + output.get(0));
+			log.info("Using " + output.get(0));
 		} else {
-			LOG.fatal("Fail to detect iptables, please check iptables support");
+			log.fatal("Fail to detect iptables, please check iptables support");
 			throw new UnsupportedOperationException("Fail to detect iptables, please check iptables support");
 		}
 	}
@@ -65,7 +63,7 @@ public class DefaultInvoker extends InvokerAdapter {
 		try {
 			shadowProcess = Runtime.getRuntime().exec(command);
 		} catch (IOException e) {
-			LOG.error("Failed to start shadow process", e);
+			log.error("Failed to start shadow process", e);
 			throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED,
 					"Failed to start shadow process with exception: " + e.getMessage());
 		}
@@ -101,14 +99,14 @@ public class DefaultInvoker extends InvokerAdapter {
 		try {
 			configuration = ToolKit.parse(conf, Configuration.class);
 		} catch (IOException e) {
-			LOG.error("Failed to parse shadow conf", e);
+			log.error("Failed to parse shadow conf", e);
 			throw new ServiceException(e);
 		}
 		configuration.validate();
 		try {
 			writeConf(generateConf(configuration));
 		} catch (IOException | JSONException e) {
-			LOG.error("Failed to write shadow conf", e);
+			log.error("Failed to write shadow conf", e);
 			throw new ServiceException(e);
 		}
 	}
@@ -164,27 +162,27 @@ public class DefaultInvoker extends InvokerAdapter {
 	}
 
 	private List<String> exec(String command) {
-		LOG.debug("Execute command: " + command);
+		log.debug("Execute command: " + command);
 		try {
 			Process process = Runtime.getRuntime().exec(command);
 			if (process.waitFor() == 0) {
-				LOG.debug("Command stdout:");
+				log.debug("Command stdout:");
 				BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-				List<String> output = reader.lines().peek(LOG::debug).collect(Collectors.toList());
+				List<String> output = reader.lines().peek(log::debug).collect(Collectors.toList());
 				reader.close();
 				return output;
 			} else {
-				LOG.error("Failed to invoke command with exit value " + process.exitValue());
-				LOG.error("command stderr:");
+				log.error("Failed to invoke command with exit value " + process.exitValue());
+				log.error("command stderr:");
 				BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 				StringBuilder builder = new StringBuilder();
-				reader.lines().peek(LOG::error).forEach(line -> builder.append(line).append('\n'));
+				reader.lines().peek(log::error).forEach(line -> builder.append(line).append('\n'));
 				reader.close();
 				throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED,
 						"Failed to invoke command: [" + command + "] with stderr: " + builder.toString());
 			}
 		} catch (IOException | InterruptedException e) {
-			LOG.error("Failed to invoke command", e);
+			log.error("Failed to invoke command", e);
 			throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED,
 					"Failed to invoke command: [" + command + "] with exception: " + e.getMessage());
 		}
