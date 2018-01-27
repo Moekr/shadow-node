@@ -1,0 +1,15 @@
+server:
+  port: 8080
+security:
+  user:
+    name: admin
+    password: password
+
+shadow:
+  invoker:
+    impl: com.moekr.shadow.node.logic.invoker.impl.DefaultInvoker
+    python-executable: /usr/bin/env python
+    shadow-executable: /usr/local/shadow/server.py
+    conf-location: /etc/shadow.conf
+    properties:
+      iptables-chain: shadow-node
