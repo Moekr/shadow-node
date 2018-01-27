@@ -25,16 +25,17 @@ public class DefaultInvoker extends InvokerAdapter {
 	private Process shadowProcess;
 
 	public DefaultInvoker() {
+		List<String> output;
 		try {
-			List<String> output = exec("iptables -V");
-			if (!output.isEmpty() && output.get(0).contains("iptables")) {
-				LOG.info("Using " + output.get(0));
-			} else {
-				LOG.fatal("Fail to detect iptables, please check iptables support");
-				throw new UnsupportedOperationException("Fail to detect iptables, please check iptables support");
-			}
+			output = exec("iptables -V");
 		} catch (Throwable e) {
 			LOG.fatal("Fail to detect iptables, please check iptables support", e);
+			throw new UnsupportedOperationException("Fail to detect iptables, please check iptables support", e);
+		}
+		if (!output.isEmpty() && output.get(0).contains("iptables")) {
+			LOG.info("Using " + output.get(0));
+		} else {
+			LOG.fatal("Fail to detect iptables, please check iptables support");
 			throw new UnsupportedOperationException("Fail to detect iptables, please check iptables support");
 		}
 	}
@@ -46,6 +47,9 @@ public class DefaultInvoker extends InvokerAdapter {
 
 	@Override
 	public void start() {
+		if (configuration == null) {
+			throw new ServiceException(ServiceException.NOT_CONFIGURED);
+		}
 		if (shadowProcess != null && shadowProcess.isAlive()) {
 			throw new ServiceException(ServiceException.INOPERABLE_STATUS, "Shadow process is already running");
 		}

@@ -2,6 +2,7 @@ package com.moekr.shadow.node.logic.service;
 
 import com.moekr.shadow.node.logic.invoker.Invoker;
 import com.moekr.shadow.node.util.FunctionWrapper;
+import com.moekr.shadow.node.util.ServiceException;
 import com.moekr.shadow.node.web.dto.Instruction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,9 @@ public class RpcService {
 
 	public Object call(Instruction instruction) {
 		FunctionWrapper<String, Object> function = functionMap.get(instruction.getCommand());
+		if (function == null) {
+			throw new ServiceException(ServiceException.OPERATION_UNSUPPORTED);
+		}
 		return function.invoke(instruction.getPayload());
 	}
 
