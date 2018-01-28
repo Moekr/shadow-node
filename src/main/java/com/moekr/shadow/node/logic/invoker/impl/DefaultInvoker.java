@@ -27,7 +27,7 @@ public class DefaultInvoker extends InvokerAdapter {
 		try {
 			output = exec("iptables -V");
 		} catch (Throwable e) {
-			log.fatal("Fail to detect iptables, please check iptables support", e);
+			log.fatal("Fail to detect iptables, please check iptables support");
 			throw new UnsupportedOperationException("Fail to detect iptables, please check iptables support", e);
 		}
 		if (!output.isEmpty() && output.get(0).contains("iptables")) {
@@ -85,13 +85,15 @@ public class DefaultInvoker extends InvokerAdapter {
 
 	@Override
 	public Status status() {
+		Status status = new Status();
 		if (shadowProcess != null && shadowProcess.isAlive()) {
-			return Status.RUNNING;
+			status.setStatus(Status.ProcessStatus.RUNNING);
 		} else if (configuration != null) {
-			return Status.IDLE;
+			status.setStatus(Status.ProcessStatus.IDLE);
 		} else {
-			return Status.NO_CONF;
+			status.setStatus(Status.ProcessStatus.NO_CONF);
 		}
+		return status;
 	}
 
 	@Override

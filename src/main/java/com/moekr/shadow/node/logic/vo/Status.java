@@ -1,12 +1,16 @@
 package com.moekr.shadow.node.logic.vo;
 
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-@Getter
+@Data
+@EqualsAndHashCode
 @ToString
-public enum Status {
-	NO_CONF,
-	IDLE,
-	RUNNING;
+public class Status {
+	private ProcessStatus status;
+
+	public enum ProcessStatus {
+		NO_CONF, IDLE, RUNNING
+	}
 }
