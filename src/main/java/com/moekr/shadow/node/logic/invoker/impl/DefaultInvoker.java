@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.validation.ValidationException;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -63,9 +64,9 @@ public class DefaultInvoker extends InvokerAdapter {
 		try {
 			shadowProcess = Runtime.getRuntime().exec(command);
 		} catch (IOException e) {
-			log.error("Failed to start shadow process", e);
-			throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED,
-					"Failed to start shadow process with exception: " + e.getMessage());
+			String message = "Failed to start shadow process [" + e.getClass().getSimpleName() + "]: " + e.getMessage();
+			log.error(message);
+			throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED, message);
 		}
 	}
 
@@ -98,18 +99,29 @@ public class DefaultInvoker extends InvokerAdapter {
 
 	@Override
 	public void conf(String conf) {
+		if (conf == null) {
+			throw new ServiceException(ServiceException.PAYLOAD_NOT_PROVIDED);
+		}
 		try {
 			configuration = ToolKit.parse(conf, Configuration.class);
 		} catch (IOException e) {
-			log.error("Failed to parse shadow conf", e);
-			throw new ServiceException(e);
+			String message = "Failed to parse shadow conf [" + e.getClass().getSimpleName() + "]: " + e.getMessage();
+			log.error(message);
+			throw new ServiceException(ServiceException.PAYLOAD_FORMAT_ERROR, message);
 		}
-		configuration.validate();
+		try {
+			configuration.validate();
+		} catch (ValidationException e) {
+			String message = "Failed to validate shadow conf: " + e.getMessage();
+			log.error(message);
+			throw new ServiceException(ServiceException.PAYLOAD_FORMAT_ERROR, message);
+		}
 		try {
 			writeConf(generateConf(configuration));
 		} catch (IOException | JSONException e) {
-			log.error("Failed to write shadow conf", e);
-			throw new ServiceException(e);
+			String message = "Failed to write shadow conf [" + e.getClass().getSimpleName() + "]: " + e.getMessage();
+			log.error(message);
+			throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED, message);
 		}
 	}
 
@@ -184,9 +196,9 @@ public class DefaultInvoker extends InvokerAdapter {
 						"Failed to invoke command: [" + command + "] with stderr: " + builder.toString());
 			}
 		} catch (IOException | InterruptedException e) {
-			log.error("Failed to invoke command", e);
-			throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED,
-					"Failed to invoke command: [" + command + "] with exception: " + e.getMessage());
+			String message = "Failed to invoke command [" + command + "] with [" + e.getClass().getSimpleName() + "]:" + e.getMessage();
+			log.error(message);
+			throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED, message);
 		}
 	}
 

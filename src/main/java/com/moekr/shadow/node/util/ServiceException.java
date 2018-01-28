@@ -12,12 +12,16 @@ public class ServiceException extends RuntimeException {
 	private static final String UNKNOWN_ERROR_MESSAGE = "Unknown error";
 
 	public static final int OPERATION_UNSUPPORTED = 100;
+	public static final int PAYLOAD_NOT_PROVIDED = 110;
+	public static final int PAYLOAD_FORMAT_ERROR = 120;
 	public static final int NOT_CONFIGURED = 200;
 	public static final int INOPERABLE_STATUS = 300;
 	public static final int NATIVE_INVOKE_FAILED = 400;
 
 	static {
 		ERROR_MESSAGE_MAP.put(OPERATION_UNSUPPORTED, "Operation is unsupported, use 'command' to list available commands");
+		ERROR_MESSAGE_MAP.put(PAYLOAD_NOT_PROVIDED, "Operation require a payload, but it is not provided");
+		ERROR_MESSAGE_MAP.put(PAYLOAD_FORMAT_ERROR, "Payload of operation has formatting error, check the request body");
 		ERROR_MESSAGE_MAP.put(NOT_CONFIGURED, "Node is not configured, use 'conf' to issue a configuration");
 		ERROR_MESSAGE_MAP.put(INOPERABLE_STATUS, "Operation can't run in the current status, use 'status' to check node status");
 		ERROR_MESSAGE_MAP.put(NATIVE_INVOKE_FAILED, "Native invocation is failed, check invoker configuration and system support");
