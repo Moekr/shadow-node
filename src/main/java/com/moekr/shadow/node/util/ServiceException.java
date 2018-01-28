@@ -8,7 +8,6 @@ import java.util.Map;
 @Getter
 public class ServiceException extends RuntimeException {
 	private static final Map<Integer, String> ERROR_MESSAGE_MAP = new HashMap<>();
-	private static final int UNSPECIFIC_INTERNAL_ERROR = 500;
 	private static final String UNKNOWN_ERROR_MESSAGE = "Unknown error";
 
 	public static final int OPERATION_UNSUPPORTED = 100;
@@ -17,6 +16,7 @@ public class ServiceException extends RuntimeException {
 	public static final int NOT_CONFIGURED = 200;
 	public static final int INOPERABLE_STATUS = 300;
 	public static final int NATIVE_INVOKE_FAILED = 400;
+	public static final int UNSPECIFIC_INTERNAL_ERROR = 500;
 
 	static {
 		ERROR_MESSAGE_MAP.put(OPERATION_UNSUPPORTED, "Operation is unsupported, use 'command' to list available commands");
@@ -28,11 +28,6 @@ public class ServiceException extends RuntimeException {
 	}
 
 	private int error;
-
-	public ServiceException(Throwable throwable) {
-		super(throwable);
-		this.error = UNSPECIFIC_INTERNAL_ERROR;
-	}
 
 	public ServiceException(int error) {
 		this(error, ERROR_MESSAGE_MAP.getOrDefault(error, UNKNOWN_ERROR_MESSAGE));
