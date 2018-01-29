@@ -52,12 +52,6 @@ public class DefaultInvoker extends InvokerAdapter {
 		if (shadowProcess != null && shadowProcess.isAlive()) {
 			throw new ServiceException(ServiceException.INOPERABLE_STATUS, "Shadow process is already running");
 		}
-		String chain = invokerConfiguration.getProperties().getOrDefault("iptables-chain", "shadow-node");
-		exec("iptables -F " + chain);
-		Set<Integer> portSet = configuration.getPortPassword().keySet();
-		for (int port : portSet) {
-			exec("iptables -A " + chain + " -p tcp --dport " + port);
-		}
 		String command = invokerConfiguration.getPythonExecutable() + " " +
 				invokerConfiguration.getShadowExecutable() + " " +
 				"-c " + invokerConfiguration.getConfLocation();
@@ -122,6 +116,23 @@ public class DefaultInvoker extends InvokerAdapter {
 			log.error(message);
 			throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED, message);
 		}
+		String chain = invokerConfiguration.getProperties().getOrDefault("iptables-chain", "shadow-node");
+		List<String> output = exec("iptables -nvxL " + chain);
+		Set<Integer> existPortSet = output.stream()
+				.skip(2)
+				.map(row -> Integer.valueOf(
+						Arrays.stream(row.split(" "))
+								.filter(StringUtils::isNotBlank)
+								.collect(Collectors.toList()).get(9).split(":")[1]
+				))
+				.collect(Collectors.toSet());
+		Set<Integer> expectPortSet = configuration.getPortPassword().keySet();
+		existPortSet.stream()
+				.filter(port -> !expectPortSet.contains(port))
+				.forEach(port -> exec("iptables -D " + chain + " -p tcp --dport " + port));
+		expectPortSet.stream()
+				.filter(port -> !existPortSet.contains(port))
+				.forEach(port -> exec("iptables -A " + chain + " -p tcp --dport " + port));
 	}
 
 	@Override
