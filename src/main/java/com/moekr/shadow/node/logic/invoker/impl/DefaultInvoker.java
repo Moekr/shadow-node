@@ -128,7 +128,7 @@ public class DefaultInvoker extends InvokerAdapter {
 	public Statistic statistic() {
 		String chain = invokerConfiguration.getProperties().getOrDefault("iptables-chain", "shadow-node");
 		List<String> output = exec("iptables -nvxL " + chain);
-		exec("iptables -Z" + chain);
+		exec("iptables -Z " + chain);
 		Map<Integer, Long> traffic = new HashMap<>();
 		output.stream().skip(2).forEach(row -> {
 			List<String> columns = Arrays.stream(row.split(" ")).filter(StringUtils::isNotBlank).collect(Collectors.toList());
