@@ -8,9 +8,6 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class Status {
-	private ProcessStatus status;
-
-	public enum ProcessStatus {
-		NO_CONF, IDLE, RUNNING
-	}
+	private Boolean running;
+	private Configuration configuration;
 }

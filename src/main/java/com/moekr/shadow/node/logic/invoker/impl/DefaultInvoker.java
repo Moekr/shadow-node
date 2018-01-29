@@ -87,12 +87,11 @@ public class DefaultInvoker extends InvokerAdapter {
 	@Override
 	public Status status() {
 		Status status = new Status();
+		status.setConfiguration(configuration);
 		if (shadowProcess != null && shadowProcess.isAlive()) {
-			status.setStatus(Status.ProcessStatus.RUNNING);
-		} else if (configuration != null) {
-			status.setStatus(Status.ProcessStatus.IDLE);
+			status.setRunning(true);
 		} else {
-			status.setStatus(Status.ProcessStatus.NO_CONF);
+			status.setRunning(false);
 		}
 		return status;
 	}
