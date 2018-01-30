@@ -37,6 +37,7 @@ public class DefaultInvoker extends InvokerAdapter {
 			log.fatal("Fail to detect iptables, please check iptables support");
 			throw new UnsupportedOperationException("Fail to detect iptables, please check iptables support");
 		}
+		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownHook));
 	}
 
 	@Override
@@ -231,9 +232,7 @@ public class DefaultInvoker extends InvokerAdapter {
 		}
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		super.finalize();
+	private void shutdownHook() {
 		if (shadowProcess != null && shadowProcess.isAlive()) {
 			shadowProcess.destroy();
 		}
