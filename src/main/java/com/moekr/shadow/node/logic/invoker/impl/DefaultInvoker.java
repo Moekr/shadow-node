@@ -120,7 +120,14 @@ public class DefaultInvoker extends InvokerAdapter {
 			log.error(message);
 			throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED, message);
 		}
-		String chain = invokerConfiguration.getProperties().getOrDefault("iptables-chain", "shadow-node");
+		String inputChain = invokerConfiguration.getProperties().getOrDefault("iptables-input-chain", "shadow-node-input");
+		String outputChain = invokerConfiguration.getProperties().getOrDefault("iptables-output-chain", "shadow-node-output");
+		configureFirewall(inputChain, true);
+		configureFirewall(outputChain, false);
+	}
+
+	private void configureFirewall(String chain, boolean input) {
+		String type = input ? "--dport" : "--sport";
 		List<String> output = exec("iptables -nvxL " + chain);
 		Set<Integer> existPortSet = output.stream()
 				.skip(2)
@@ -133,15 +140,25 @@ public class DefaultInvoker extends InvokerAdapter {
 		Set<Integer> expectPortSet = configuration.getPortPassword().keySet();
 		existPortSet.stream()
 				.filter(port -> !expectPortSet.contains(port))
-				.forEach(port -> exec("iptables -D " + chain + " -p tcp --dport " + port));
+				.forEach(port -> exec("iptables -D " + chain + " -p tcp " + type + " " + port));
 		expectPortSet.stream()
 				.filter(port -> !existPortSet.contains(port))
-				.forEach(port -> exec("iptables -A " + chain + " -p tcp --dport " + port));
+				.forEach(port -> exec("iptables -A " + chain + " -p tcp " + type + " " + port));
 	}
 
 	@Override
 	public Statistic statistic() {
-		String chain = invokerConfiguration.getProperties().getOrDefault("iptables-chain", "shadow-node");
+		String inputChain = invokerConfiguration.getProperties().getOrDefault("iptables-input-chain", "shadow-node-input");
+		String outputChain = invokerConfiguration.getProperties().getOrDefault("iptables-output-chain", "shadow-node-output");
+		Map<Integer, Long> inputTraffic = traffic(inputChain);
+		Map<Integer, Long> outputTraffic = traffic(outputChain);
+		outputTraffic.forEach((key, value) -> inputTraffic.merge(key, value, (a, b) -> a + b));
+		Statistic statistic = new Statistic();
+		statistic.setTraffic(inputTraffic);
+		return statistic;
+	}
+
+	private Map<Integer, Long> traffic(String chain) {
 		List<String> output = exec("iptables -nvxL " + chain);
 		exec("iptables -Z " + chain);
 		Map<Integer, Long> traffic = new HashMap<>();
@@ -149,9 +166,7 @@ public class DefaultInvoker extends InvokerAdapter {
 			List<String> columns = Arrays.stream(row.split(" ")).filter(StringUtils::isNotBlank).collect(Collectors.toList());
 			traffic.put(Integer.valueOf(columns.get(9).split(":")[1]), Long.valueOf(columns.get(1)));
 		});
-		Statistic statistic = new Statistic();
-		statistic.setTraffic(traffic);
-		return statistic;
+		return traffic;
 	}
 
 	private JSONObject generateConf(Configuration configuration) throws JSONException {

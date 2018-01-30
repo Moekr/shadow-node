@@ -12,4 +12,5 @@ shadow:
     shadow-executable: /usr/local/shadow/server.py
     conf-location: /etc/shadow.conf
     properties:
-      iptables-chain: shadow-node
+      iptables-input-chain: shadow-node-input
+      iptables-output-chain: shadow-node-output
