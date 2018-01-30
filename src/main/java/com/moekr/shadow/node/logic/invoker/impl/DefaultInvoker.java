@@ -75,6 +75,10 @@ public class DefaultInvoker extends InvokerAdapter {
 	@Override
 	public void restart() {
 		stop();
+		try {
+			shadowProcess.waitFor();
+		} catch (InterruptedException ignored) {
+		}
 		start();
 	}
 
