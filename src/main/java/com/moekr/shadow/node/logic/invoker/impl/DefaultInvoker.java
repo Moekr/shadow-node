@@ -11,6 +11,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.validation.ValidationException;
 import java.io.*;
@@ -235,6 +236,26 @@ public class DefaultInvoker extends InvokerAdapter {
 	private void shutdownHook() {
 		if (shadowProcess != null && shadowProcess.isAlive()) {
 			shadowProcess.destroy();
+		}
+	}
+
+	@Scheduled(cron = "*/15 * * * * *")
+	private void checkDeadSocket() {
+		if (shadowProcess == null || !shadowProcess.isAlive()) {
+			return;
+		}
+		String property = invokerConfiguration.getProperties().get("dead-socket-threshold");
+		int threshold;
+		try {
+			threshold = Integer.valueOf(property);
+		} catch (NumberFormatException e) {
+			return;
+		}
+		List<String> output = exec("netstat -tn");
+		long count = output.stream().filter(line -> line.contains("CLOSE_WAIT")).count();
+		log.debug("Check dead socket, count: " + count);
+		if (count >= threshold) {
+			restart();
 		}
 	}
 }
