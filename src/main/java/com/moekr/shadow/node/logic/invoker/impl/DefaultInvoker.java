@@ -59,6 +59,7 @@ public class DefaultInvoker extends InvokerAdapter {
 				"-c " + invokerConfiguration.getConfLocation();
 		try {
 			shadowProcess = Runtime.getRuntime().exec(command);
+			new Thread(() -> dropOutput(shadowProcess)).start();
 		} catch (IOException e) {
 			String message = "Failed to start shadow process [" + e.getClass().getSimpleName() + "]: " + e.getMessage();
 			log.error(message);
@@ -230,6 +231,17 @@ public class DefaultInvoker extends InvokerAdapter {
 			String message = "Failed to invoke command [" + command + "] with [" + e.getClass().getSimpleName() + "]:" + e.getMessage();
 			log.error(message);
 			throw new ServiceException(ServiceException.NATIVE_INVOKE_FAILED, message);
+		}
+	}
+
+	private void dropOutput(Process process) {
+		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+			String line;
+			do {
+				line = bufferedReader.readLine();
+			} while (line != null);
+		} catch (IOException e) {
+			log.error("Drop process output fail with exception: " + e.getMessage());
 		}
 	}
 
