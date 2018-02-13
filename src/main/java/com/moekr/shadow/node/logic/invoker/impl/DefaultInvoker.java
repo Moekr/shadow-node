@@ -235,7 +235,10 @@ public class DefaultInvoker extends InvokerAdapter {
 	}
 
 	private void dropOutput(Process process) {
-		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+		InputStream stdout = process.getInputStream();
+		InputStream stderr = process.getErrorStream();
+		InputStream stream = new SequenceInputStream(stdout, stderr);
+		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream))) {
 			String line;
 			do {
 				line = bufferedReader.readLine();
