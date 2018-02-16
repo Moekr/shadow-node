@@ -1,16 +1,8 @@
-server:
-  port: 8080
-security:
-  user:
-    name: admin
-    password: password
-
+spring:
+  dubbo:
+    registry:
+      address: zookeeper://localhost:2181
 shadow:
   invoker:
-    impl: com.moekr.shadow.node.logic.invoker.impl.DefaultInvoker
-    python-executable: /usr/bin/env python
-    shadow-executable: /usr/local/shadow/server.py
-    conf-location: /etc/shadow.conf
-    properties:
-      iptables-input-chain: shadow-node-input
-      iptables-output-chain: shadow-node-output
+    executable: /usr/bin/env python /usr/local/shadow/server.py
+    conf-location: /usr/local/shadow/mudb.json
