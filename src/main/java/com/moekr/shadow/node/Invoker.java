@@ -23,7 +23,7 @@ public class Invoker {
 	private final ExecutorService executorService;
 
 	private Set<Server> servers = new HashSet<>();
-	private Set<User> users = new HashSet<>();
+	private Set<VirtualServer> virtualServers = new HashSet<>();
 	private Map<Integer, Traffic> trafficMap = new HashMap<>();
 	private Process shadowProcess;
 
@@ -59,16 +59,19 @@ public class Invoker {
 			log.error("Configuration sent from shadow panel is NULL");
 			return;
 		}
-		if (!Objects.equals(configuration.getServers(), servers) || !Objects.equals(configuration.getUsers(), users)) {
+		if (!Objects.equals(configuration.getServers(), servers) || !Objects.equals(configuration.getVirtualServers(), virtualServers)) {
 			servers = configuration.getServers();
-			users = configuration.getUsers();
+			virtualServers = configuration.getVirtualServers();
 			try {
 				writeConf();
+				trafficMap.clear();
+				restart();
 			} catch (Exception e) {
 				log.error("Failed to write configuration [" + e.getClass().getName() + "]: " + e.getMessage());
 			}
+		} else {
+			doAction(configuration.getAction());
 		}
-		doAction(configuration.getAction());
 	}
 
 	private boolean isRunning() {
@@ -89,6 +92,9 @@ public class Invoker {
 	}
 
 	private void start() {
+		if (isRunning()) {
+			return;
+		}
 		try {
 			shadowProcess = Runtime.getRuntime().exec(invokerConfiguration.getExecutable());
 			executorService.submit(() -> dropOutput(shadowProcess));
@@ -98,6 +104,9 @@ public class Invoker {
 	}
 
 	private void stop() {
+		if (!isRunning()) {
+			return;
+		}
 		shadowProcess.destroy();
 	}
 
@@ -140,22 +149,16 @@ public class Invoker {
 		for (int index = 0; index < array.length(); index++) {
 			JSONObject object = array.optJSONObject(index);
 			if (object != null && object.isNull("protocol_param")) {
-				int muId = object.optInt("port", -1);
+				int port = object.optInt("port");
 				long download = object.optLong("d", 0);
 				long upload = object.optLong("u", 0);
-				if (muId > 10000) {
-					Traffic oldTraffic = trafficMap.get(muId);
-					if (oldTraffic == null) {
-						oldTraffic = new Traffic();
-						trafficMap.put(muId, oldTraffic);
-					}
-					Traffic newTraffic = new Traffic();
-					newTraffic.setDownload(Math.max(0, download - oldTraffic.getDownload()));
-					newTraffic.setUpload(Math.max(0, upload - oldTraffic.getUpload()));
-					oldTraffic.setDownload(download);
-					oldTraffic.setUpload(upload);
-					statistic.getTrafficMap().put(muId, newTraffic);
-				}
+				Traffic oldTraffic = trafficMap.computeIfAbsent(port, key -> new Traffic());
+				Traffic newTraffic = new Traffic();
+				newTraffic.setDownload(Math.max(0, download - oldTraffic.getDownload()));
+				newTraffic.setUpload(Math.max(0, upload - oldTraffic.getUpload()));
+				oldTraffic.setDownload(download);
+				oldTraffic.setUpload(upload);
+				statistic.getTrafficMap().put(port, newTraffic);
 			}
 		}
 		return statistic;
@@ -166,27 +169,20 @@ public class Invoker {
 		JSONObject object;
 		for (Server server : servers) {
 			object = new JSONObject();
-			object.put("user", server.getName());
 			object.put("port", server.getPort());
 			object.put("passwd", server.getPassword());
 			object.put("method", server.getMethod());
 			object.put("protocol", server.getProtocol());
 			object.put("obfs", server.getObfs());
 			object.put("protocol_param", "#");
-			object.put("d", 0);
-			object.put("u", 0);
-			object.put("transfer_enable", 9007199254740992L);
 			object.put("enable", 1);
 			array.put(object);
 		}
-		for (User user : users) {
+		for (VirtualServer virtualServer : virtualServers) {
 			object = new JSONObject();
-			object.put("user", user.getName());
-			object.put("port", user.getMuId());
-			object.put("passwd", user.getPassword());
-			object.put("method", "none");
-			object.put("protocol", "origin");
-			object.put("obfs", "plain");
+			object.put("port", virtualServer.getPort());
+			object.put("passwd", virtualServer.getPassword());
+			object.put("transfer_enable", 1125899906842624L);
 			object.put("d", 0);
 			object.put("u", 0);
 			object.put("enable", 1);
