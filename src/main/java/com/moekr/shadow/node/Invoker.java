@@ -115,10 +115,12 @@ public class Invoker {
 
 	private void restart() {
 		stop();
-		try {
-			shadowProcess.waitFor();
-		} catch (InterruptedException e) {
-			log.error("Failed to wait for process terminating [" + e.getClass().getName() + "]:" + e.getMessage());
+		if (shadowProcess != null) {
+			try {
+				shadowProcess.waitFor();
+			} catch (InterruptedException e) {
+				log.error("Failed to wait for process terminating [" + e.getClass().getName() + "]:" + e.getMessage());
+			}
 		}
 		start();
 	}
