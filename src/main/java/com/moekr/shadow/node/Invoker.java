@@ -173,8 +173,9 @@ public class Invoker {
 			object.put("passwd", server.getPassword());
 			object.put("method", server.getMethod());
 			object.put("protocol", server.getProtocol());
-			object.put("obfs", server.getObfs());
 			object.put("protocol_param", "#");
+			object.put("obfs", server.getObfs());
+			object.put("obfs_param", server.getObfsParam());
 			object.put("enable", 1);
 			array.put(object);
 		}
