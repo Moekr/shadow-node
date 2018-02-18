@@ -95,6 +95,9 @@ public class Invoker {
 		if (isRunning()) {
 			return;
 		}
+		if (servers.isEmpty() || virtualServers.isEmpty()) {
+			return;
+		}
 		try {
 			shadowProcess = Runtime.getRuntime().exec(invokerConfiguration.getExecutable());
 			executorService.submit(() -> dropOutput(shadowProcess));
