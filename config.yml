@@ -4,5 +4,6 @@ spring:
       address: zookeeper://localhost:2181
 shadow:
   invoker:
-    executable: /usr/bin/env python /usr/local/shadow/server.py
+    node-id: 1
+    executable: /bin/bash /usr/local/shadow/run.sh
     conf-location: /usr/local/shadow/mudb.json

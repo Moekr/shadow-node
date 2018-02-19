@@ -29,6 +29,9 @@ public class Invoker {
 
 	@Autowired
 	public Invoker(InvokerConfiguration invokerConfiguration, ExecutorService executorService) {
+		if (invokerConfiguration.getNodeId() == null) {
+			throw new NullPointerException("Node id(shadow.invoker.node-id) is not set");
+		}
 		this.invokerConfiguration = invokerConfiguration;
 		this.executorService = executorService;
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownHook));
@@ -114,13 +117,14 @@ public class Invoker {
 	}
 
 	private void restart() {
+		if (!isRunning()) {
+			return;
+		}
 		stop();
-		if (shadowProcess != null) {
-			try {
-				shadowProcess.waitFor();
-			} catch (InterruptedException e) {
-				log.error("Failed to wait for process terminating [" + e.getClass().getName() + "]:" + e.getMessage());
-			}
+		try {
+			shadowProcess.waitFor();
+		} catch (InterruptedException e) {
+			log.error("Failed to wait for process terminating [" + e.getClass().getName() + "]:" + e.getMessage());
 		}
 		start();
 	}

@@ -15,11 +15,11 @@ import java.util.concurrent.ScheduledExecutorService;
 @ConfigurationProperties("shadow.invoker")
 public class InvokerConfiguration {
 	private Integer nodeId;
-	private String executable = "/usr/bin/env python /usr/local/shadow/server.py";
+	private String executable = "/bin/bash /usr/local/shadow/run.sh";
 	private String confLocation = "/usr/local/shadow/mudb.json";
 
 	@Bean
 	public ScheduledExecutorService scheduledExecutor() {
-		return Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+		return Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 4);
 	}
 }
