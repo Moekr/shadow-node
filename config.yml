@@ -1,9 +1,9 @@
-spring:
-  dubbo:
-    registry:
-      address: zookeeper://localhost:2181
 shadow:
   invoker:
     node-id: 1
-    executable: /bin/bash /usr/local/shadow/run.sh
+    panel:
+      url: http://panel.example.com
+      username: username
+      password: password
+    executable: /usr/bin/env bash /usr/local/shadow/run.sh
     conf-location: /usr/local/shadow/mudb.json

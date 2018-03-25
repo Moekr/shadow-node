@@ -1,4 +1,3 @@
 spring:
-  dubbo:
-    application:
-      name: shadow-node
+  main:
+    web-application-type: none

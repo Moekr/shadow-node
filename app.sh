@@ -5,7 +5,7 @@ path=/opt/shadow-node
 # Application name.
 name=shadow-node
 # Application version.
-version=0.2.0
+version=0.3.0
 
 # Application conf file. Default conf.yml
 config_file=${path}/config.yml
@@ -15,7 +15,7 @@ pid_file=${path}/proc.pid
 log_dir=${path}/log
 # Name template of log files (Parsed with shell command "date"). Default %Y-%m-%d_%H-%M-%S.log
 log_name=%Y-%m-%d_%H-%M-%S.log
-# Time in second how long "stop" and "force-stop" wait for application totally stop. Default 60
+# Time in second how long "stop" wait for application totally stop. Default 60
 wait_count=60
 
 function start {
@@ -35,7 +35,7 @@ function start {
         then
             mkdir ${log_dir}
         fi
-        java -server -jar ${path}/${name}-${version}.jar --spring.config.location=${config_file} 2>&1 >${log_dir}/$(date +${log_name}) &
+        java -server -jar ${path}/${name}-${version}.jar --spring.config.additional-location=${config_file} >${log_dir}/$(date +${log_name}) 2>&1 &
         local pid=$(echo -e "$!\c")
         echo -e "${pid}\c" > ${pid_file}
         echo "Start application ${name} successfully! (Version:${version} PID:${pid})"
@@ -99,7 +99,7 @@ function status {
 }
 
 function usage {
-    echo "Usage: $0 {start|stop|restart|force-stop|force-restart|status}"
+    echo "Usage: $0 {start|stop|restart|status}"
 }
 
 pushd ${path} > /dev/null
