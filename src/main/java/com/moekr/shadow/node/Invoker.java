@@ -146,9 +146,9 @@ public class Invoker {
 				long download = object.optLong("d");
 				long upload = object.optLong("u");
 				long origin = statisticsMap.getOrDefault(port, 0L);
-				long current = Math.max(origin, download + upload);
+				long current = download + upload;
 				statisticsMap.put(port, current);
-				long delta = current - origin;
+				long delta = Math.max(0, current - origin);
 				if (delta > 0) {
 					object = new JSONObject();
 					object.put("id", port);
@@ -187,6 +187,7 @@ public class Invoker {
 		bufferedWriter.write(array.toString(4));
 		bufferedWriter.flush();
 		bufferedWriter.close();
+		statisticsMap.clear();
 	}
 
 	private void shutdownHook() {

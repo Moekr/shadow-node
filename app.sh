@@ -5,7 +5,7 @@ path=/opt/shadow-node
 # Application name.
 name=shadow-node
 # Application version.
-version=0.3.0
+version=0.3.1
 
 # Application conf file. Default conf.yml
 config_file=${path}/config.yml
